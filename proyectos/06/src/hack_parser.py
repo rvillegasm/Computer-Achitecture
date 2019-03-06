@@ -69,13 +69,13 @@ class Parser:
       self.current_command = command
     
     # if it starts with an @, it is of type A
-    if command[0] == '@':
+    if command[0] == '@' and command[1:] != "":
       return "A_COMMAND"
     # if it has an = or a ;, it is of type C
     elif ('=' in command or ';' in command):
       return "C_COMMAND"
     # if it has a set of parenthesys, it is of type L
-    elif command[0] == '(' and command[-1] == ')':
+    elif command[0] == '(' and command[-1] == ')' and command[1:-1].strip() != "":
       return "L_COMMAND"
     # if none of the above, throw a Syntax error
     else:

@@ -52,6 +52,10 @@ def main():
     if parser.command_type() == "L_COMMAND":
       # get the symbol for the label
       label_symbol = parser.symbol()
+      # check thtat the label is a valid simbol
+      if label_symbol[0].isnumeric():
+        print("ERROR: symbol [{}] is not a valid symbol!\n".format(label_symbol))
+        raise SyntaxError
       # add the label to the table
       symbol_table.addEntry(label_symbol, rom_counter)
     else:
