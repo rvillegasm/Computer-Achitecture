@@ -1,0 +1,8 @@
+Para reconocer las instrucciones tipo C DxA y DxM se tendria que agregar un nuevo bit a los bits de comp.
+
+Esto significa que se pasa de la estructura: 111accccccdddjjj a 11caccccccdddjjj.
+
+Esto se hace aprovechando que los bit 14 y 13 eran siempre 1 y su valor no indicaba nada.
+
+Con este cambio se aprovecha el bit 13 como otro bit de tipo comp para mandar señales a la ALU sobre la operacion a realizar,
+en este caso el Xor (señal xo en la ALU).
