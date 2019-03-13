@@ -1,0 +1,2 @@
+Si trata de usar el número 450200 para encriptar, el programa no funcionará, ya que la arquitectura del Hack es de 16 bits,
+por lo cual solo permite cargar numeros enteros sin signo hasta el 32768 (número maximo para representar en 16 bits).
