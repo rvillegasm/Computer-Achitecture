@@ -1,0 +1,7 @@
+En este caso, si encuentra un numero negativo despues del '@', se tendrian que usar solo 15 bits para su construccion,
+ya que el MSB dice si es instruccion tipo a o c y no debo cambiar su comportamiento.
+Habría que coger todo el número (15 bits) y sacar su complemento a dos desde el assembler. 
+Osea que se tendría que invertir todos los bits que representan el número y sumarle 1 al resultado.
+
+La traduccion generada sería:
+0000000000000001 -> 0111111111111110 -> 0111111111111111
