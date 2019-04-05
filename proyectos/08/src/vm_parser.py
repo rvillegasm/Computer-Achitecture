@@ -92,6 +92,15 @@ class Parser:
     # else, if it is if-goto, return C_IF
     elif command_components[0] == "if-goto":
       return "C_IF"
+    # else, if it is function, return C_FUNCTION
+    elif command_components[0] == "function":
+      return "C_FUNCTION"
+    # else, if it is call, return C_CALL
+    elif command_components[0] == "call":
+      return "C_CALL"
+    # else, if it is return, return C_RETURN
+    elif command_components[0] == "return":
+      return "C_RETURN"
     
     else:
       print("ERROR: Command [{}] is not a valid command!".format(command_components[0]))
@@ -122,8 +131,8 @@ class Parser:
       except IndexError:
         print("ERROR: Missing an argument for the command [{}]!".format(command))
         exit(-1)
-    # if it is not a push or pop command, check if it is a goto, label or if command
-    elif self.command_type() == "C_LABEL" or self.command_type() == "C_GOTO" or self.command_type() == "C_IF":
+    # if it is not a push or pop command, check if it is a goto, label, if, function or call command
+    elif self.command_type() == "C_LABEL" or self.command_type() == "C_GOTO" or self.command_type() == "C_IF" or self.command_type() == "C_FUNCTION" or self.command_type() == "C_CALL":
       try:
         return command_components[1]
       except IndexError:
@@ -135,7 +144,7 @@ class Parser:
   def arg2(self):
     """ 
     Returns the second argument of the current command.
-    Call it only when command type is C_PUSH, C_POP, C_FUNCTION, C_CALL 
+    Call it only when command type is C_PUSH, C_POP, C_FUNCTION, C_CALL, C_FUNCTION, C_CALL 
     """
 
     # get the current command
@@ -143,7 +152,7 @@ class Parser:
     # try to get the second argument of the command
     try:
       second_argument = command.split(" ")[2]
-    # if there isn't a second argument, throw an error2
+    # if there isn't a second argument, throw an error
     except IndexError:
       print("ERROR: Missing an argument for the command [{}]!".format(command))
       exit(-1)

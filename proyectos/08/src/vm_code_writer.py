@@ -15,11 +15,35 @@ class CodeWriter:
     final_output_file = output_file + ".asm"
     self.file = open(final_output_file, 'w+')
     self.current_file = None
+    self.current_function_name = ""
     self.current_command_number = 0
 
   def set_file_name(self, file_name):
     """ Informs the code writer that the translation of a new VM file started """
-    self.current_file = file_name
+    # split the path to the file name
+    file_path = file_name.split("/")
+    # get the last part, which is the name of the actual file
+    file = file_path[-1]
+    # set it
+    self.current_file = file
+
+  def set_function_name(self, function_name):
+    """ Informs the code writer that the translation of a new VM function started """
+    self.current_function_name = function_name
+
+  def write_init(self):
+    """ Writes the assembly code for the VM initialization (bootstrap code). """
+
+    self.set_file_name("Sys")
+
+    # add the commands
+    # SP = 256
+    self.file.write("@256\n")
+    self.file.write("D=A\n")
+    self.file.write("@SP\n")
+    self.file.write("M=D\n")
+    # call Sys.init
+    self.write_call("Sys.init", 0)
 
   def write_arithmetic(self, command):
     """ Writes the assembly code corresponding to the given arithmetic command """
@@ -246,11 +270,11 @@ class CodeWriter:
 
   def write_label(self, label):
     """ Writes the assembly code for the specified label """
-    self.file.write("({})\n".format(label.upper()))
+    self.file.write("({}.{}:{})\n".format(self.current_file.upper(), self.current_function_name.upper(), label.upper()))
 
   def write_goto(self, label):
     """ Writes the assembly command for the given goto vm command """
-    self.file.write("@{}\n".format(label.upper()))
+    self.file.write("@{}.{}:{}\n".format(self.current_file.upper(), self.current_function_name.upper(), label.upper()))
     self.file.write("0;JMP\n")
 
   def write_if(self, label):
@@ -262,8 +286,169 @@ class CodeWriter:
     assembly_commands.append("@SP")
     assembly_commands.append("AM=M-1")
     assembly_commands.append("D=M")
-    assembly_commands.append("@{}".format(label.upper()))
+    assembly_commands.append("@{}.{}:{}".format(self.current_file.upper(), self.current_function_name.upper(), label.upper()))
     assembly_commands.append("D;JNE")
+
+    # write the commands to the output file
+    for line in assembly_commands:
+      self.file.write(line + '\n')
+
+  def write_call(self, function_name, num_args):
+    """ Writes the assembly command for the given call vm command """
+    
+    # set the function name to the current function
+    self.set_function_name(function_name)
+    # create an empty list to store all the asm commands
+    assembly_commands = []
+
+    # add the commands to the list 
+    # push the return address
+    assembly_commands.append("@{}.{}_RETURN".format(self.current_file.upper(), self.current_function_name.upper()))
+    assembly_commands.append("D=A")                                                                                           
+    assembly_commands.append("@SP")
+    assembly_commands.append("A=M")
+    assembly_commands.append("M=D")
+    assembly_commands.append("@SP")
+    assembly_commands.append("M=M+1")
+    # push LCL
+    assembly_commands.append("@LCL")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@SP")
+    assembly_commands.append("A=M")
+    assembly_commands.append("M=D")
+    assembly_commands.append("@SP")
+    assembly_commands.append("M=M+1")
+    # push ARG
+    assembly_commands.append("@ARG")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@SP")
+    assembly_commands.append("A=M")
+    assembly_commands.append("M=D")
+    assembly_commands.append("@SP")
+    assembly_commands.append("M=M+1")
+    # push THIS
+    assembly_commands.append("@THIS")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@SP")
+    assembly_commands.append("A=M")
+    assembly_commands.append("M=D")
+    assembly_commands.append("@SP")
+    assembly_commands.append("M=M+1")
+    # push THAT
+    assembly_commands.append("@THAT")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@SP")
+    assembly_commands.append("A=M")
+    assembly_commands.append("M=D")
+    assembly_commands.append("@SP")
+    assembly_commands.append("M=M+1")
+    # ARG = SP - num_args - 5
+    assembly_commands.append("@SP")                                                 #TODO: da diferentes errores con y sin, pero estructura es igual.
+    assembly_commands.append("D=M")
+    assembly_commands.append("@{}".format(num_args))
+    assembly_commands.append("D=D-A")
+    assembly_commands.append("@5")
+    assembly_commands.append("D=D-A")
+    assembly_commands.append("@ARG")
+    assembly_commands.append("M=D")
+    # LCL = SP
+    assembly_commands.append("@SP")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@LCL")
+    assembly_commands.append("M=D")
+    # goto func
+    assembly_commands.append("@{}.{}".format(self.current_file.upper(), self.current_function_name.upper()))
+    assembly_commands.append("0;JMP")
+    # return address label
+    assembly_commands.append("({}.{}_RETURN)".format(self.current_file.upper(), self.current_function_name.upper()))
+
+    # write the commands to the output file
+    for line in assembly_commands:
+      self.file.write(line + '\n')
+
+  def write_return(self):
+    """ Writes the assembly command for the given return vm command """
+    # create an empty list to store the asm commands
+    assembly_commands = []
+    
+    # add the commands 
+    # FRAME = LCL
+    assembly_commands.append("@LCL")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@R14")
+    assembly_commands.append("M=D")
+    # RET = *(FRAME - 5)
+    assembly_commands.append("@5")
+    assembly_commands.append("A=D-A")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@R15")
+    assembly_commands.append("M=D")
+    # *ARG = pop()
+    assembly_commands.append("@SP")
+    assembly_commands.append("AM=M-1")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@ARG")
+    assembly_commands.append("A=M")
+    assembly_commands.append("M=D")
+    # SP = ARG + 1
+    assembly_commands.append("@ARG")
+    assembly_commands.append("D=M+1")
+    assembly_commands.append("@SP")
+    assembly_commands.append("M=D")
+    # THAT = *(FRAME-1)
+    assembly_commands.append("@R14")
+    assembly_commands.append("A=M-1")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@THAT")
+    assembly_commands.append("M=D")
+    # THIS = *(FRAME-2)
+    assembly_commands.append("@R14")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@2")
+    assembly_commands.append("A=D-A")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@THIS")
+    assembly_commands.append("M=D")
+    # ARG = *(FRAME-3)
+    assembly_commands.append("@R14")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@3")
+    assembly_commands.append("A=D-A")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@ARG")
+    assembly_commands.append("M=D")
+    # LCL = *(FRAME-4)
+    assembly_commands.append("@R14")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@4")
+    assembly_commands.append("A=D-A")
+    assembly_commands.append("D=M")
+    assembly_commands.append("@LCL")
+    assembly_commands.append("M=D")
+    # goto RET
+    assembly_commands.append("@R15")
+    assembly_commands.append("A=M")
+    assembly_commands.append("0;JMP")
+  
+    # write the commands to the output file
+    for line in assembly_commands:
+      self.file.write(line + '\n')
+
+  def write_function(self, function_name, num_locals):
+    """ Writes the assembly command for the given function vm command """
+    # create an empty list to store the asm commands
+    assembly_commands = []
+
+    # add the asm commands
+    # (func)
+    assembly_commands.append("({}.{})".format(self.current_file.upper(), function_name.upper()))
+    # push 0 for every local variable
+    for _ in range(num_locals):
+      assembly_commands.append("@SP")
+      assembly_commands.append("A=M")
+      assembly_commands.append("M=0")
+      assembly_commands.append("@SP")
+      assembly_commands.append("M=M+1")
 
     # write the commands to the output file
     for line in assembly_commands:
