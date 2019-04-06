@@ -145,7 +145,7 @@ def translate_one_file(input_file_name, code_writer):
 def bad_usage():
   """ Funtion that manages a bad argument usage of the program, terminating it right away """
   
-  print("Usage: python3 vm_translator.py [<File Name>.vm | <Directory>] ")
+  print("Usage: python3 vm_translator.py [<File Name>.vm | <Directory containing at least one .vm file>] ")
   sys.exit(-1)
 
 if __name__ == "__main__":

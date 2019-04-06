@@ -139,8 +139,6 @@ class Parser:
         print("ERROR: Missing a label argument for the command [{}]!".format(command))
         exit(-1)
 
-    
-
   def arg2(self):
     """ 
     Returns the second argument of the current command.
