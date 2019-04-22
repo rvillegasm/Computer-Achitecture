@@ -1,0 +1,201 @@
+/** 
+    Main class for the Hack-based Calendar program.
+    It asks the user for a date input to determine what month it should show on the screen.
+    The user can then ask for a diferent month either by moving a month/year at a time or by entering a new specific date. 
+*/
+class Main {
+    function void main() {
+        // calendar related variables
+        var Calendar calendar;
+        var Month month;
+        var int firstWeekdayOfMonth;
+        var Array holidays;
+        var Frame frame;
+        // program flow related variables
+        var char keyPressed;
+        var int inputYear, currentYear;
+        var int inputMonth, currentMonth;
+        var int inputDay;
+
+        let keyPressed = 0;
+
+        // ask for the date
+        let inputYear = Keyboard.readInt("Please Input the desired year: ");
+        let inputMonth = Keyboard.readInt("Please Input the desired month: ");
+        let inputDay = Keyboard.readInt("Please Input the desired day: ");
+        
+        // check for errors regarding the year
+        if((inputYear < 1583) | (inputYear > 2299)) {
+            do Main.throwError("Cannot represent the desired year! ");
+        }
+
+        // instantiate the calendar, first weeday of the month and holidays
+        let calendar = Calendar.new(inputYear);
+        let firstWeekdayOfMonth = Calendar.getDayOfMonth(1, inputMonth, inputYear);
+        let holidays = Calendar.calculateHolidays(inputYear);
+        
+        // check for errors regarding the month and day
+        do Main.checkForErrors(inputMonth, inputDay, calendar);
+
+        // instantiate the month and frame, based on the previos variables
+        let month = Month.new(inputMonth, inputYear, firstWeekdayOfMonth, holidays, calendar.getIsLeap());
+        let frame = Frame.new(calendar, month);
+        // clear the screen and then draw
+        do Main.drawFrame(frame);
+
+        // keep the program running until the 'T' key is pressed
+        let currentMonth = inputMonth;
+        let currentYear = inputYear;
+        while(~(keyPressed = 84)) {
+            let keyPressed = Keyboard.readChar();
+            // if the left arrow is pressed, the program will go back one month
+            if(keyPressed = 130) {
+                if(currentMonth = 1) {
+                    let currentMonth = 12;
+                    let currentYear = currentYear - 1;
+                    do calendar.dispose();
+                    do holidays.dispose();
+                    let calendar = Calendar.new(currentYear);
+                    let holidays = Calendar.calculateHolidays(currentYear);
+                }
+                else {
+                    let currentMonth = currentMonth - 1;
+                }
+                do frame.dispose();
+                do month.dispose();
+                let firstWeekdayOfMonth = Calendar.getDayOfMonth(1, currentMonth, currentYear);
+                let month = Month.new(currentMonth, currentYear, firstWeekdayOfMonth, holidays, calendar.getIsLeap());
+                let frame = Frame.new(calendar, month);
+                do Main.drawFrame(frame);
+            }
+            // if the right arrow is pressed, the program will go forward one month
+            if(keyPressed = 132) {
+                if(currentMonth = 12) {
+                    let currentMonth = 1;
+                    let currentYear = currentYear + 1;
+                    do calendar.dispose();
+                    do holidays.dispose();
+                    let calendar = Calendar.new(currentYear);
+                    let holidays = Calendar.calculateHolidays(currentYear);
+                }
+                else {
+                    let currentMonth = currentMonth + 1;
+                }
+                do frame.dispose();
+                do month.dispose();
+                let firstWeekdayOfMonth = Calendar.getDayOfMonth(1, currentMonth, currentYear);
+                let month = Month.new(currentMonth, currentYear, firstWeekdayOfMonth, holidays, calendar.getIsLeap());
+                let frame = Frame.new(calendar, month);
+                do Main.drawFrame(frame);
+            }
+            // if the up arrow is pressed, the program will go back one year
+            if(keyPressed = 131) {
+                let currentYear = currentYear - 1;
+                do calendar.dispose();
+                do holidays.dispose();
+                do frame.dispose();
+                do month.dispose();
+                let calendar = Calendar.new(currentYear);
+                let holidays = Calendar.calculateHolidays(currentYear);
+                let firstWeekdayOfMonth = Calendar.getDayOfMonth(1, currentMonth, currentYear);
+                let month = Month.new(currentMonth, currentYear, firstWeekdayOfMonth, holidays, calendar.getIsLeap());
+                let frame = Frame.new(calendar, month);
+                do Main.drawFrame(frame);
+            }
+            // if the down arrow is pressed, the program will go forward one year
+            if(keyPressed = 133) {
+                let currentYear = currentYear + 1;
+                do calendar.dispose();
+                do holidays.dispose();
+                do frame.dispose();
+                do month.dispose();
+                let calendar = Calendar.new(currentYear);
+                let holidays = Calendar.calculateHolidays(currentYear);
+                let firstWeekdayOfMonth = Calendar.getDayOfMonth(1, currentMonth, currentYear);
+                let month = Month.new(currentMonth, currentYear, firstWeekdayOfMonth, holidays, calendar.getIsLeap());
+                let frame = Frame.new(calendar, month);
+                do Main.drawFrame(frame);
+            }
+            // if the 'O' key is pressed, the user will be asked for a new date
+            if(keyPressed = 79) {
+                do Screen.clearScreen();
+                do Output.moveCursor(0,0);
+                // ask for the date
+                let inputYear = Keyboard.readInt("Please Input the desired year: ");
+                let inputMonth = Keyboard.readInt("Please Input the desired month: ");
+                let inputDay = Keyboard.readInt("Please Input the desired day: ");
+                // check for errors regarding the year
+                if((inputYear < 1583) | (inputYear > 2299)) {
+                    do Main.throwError("Cannot represent the desired year! ");
+                }
+                // instantiate the calendar, first weeday of the month and holidays
+                let calendar = Calendar.new(inputYear);
+                let firstWeekdayOfMonth = Calendar.getDayOfMonth(1, inputMonth, inputYear);
+                let holidays = Calendar.calculateHolidays(inputYear);
+                // check for errors regarding the month and day
+                do Main.checkForErrors(inputMonth, inputDay, calendar);
+                // instantiate the month and frame, based on the previos variables
+                let month = Month.new(inputMonth, inputYear, firstWeekdayOfMonth, holidays, calendar.getIsLeap());
+                let frame = Frame.new(calendar, month);
+                // clear the screen and then draw
+                do Main.drawFrame(frame);
+            }
+        }
+
+        // free the memory related to the objects and clear the screen
+        do Screen.clearScreen();
+        do calendar.dispose();
+        do holidays.dispose();
+        do frame.dispose();
+        do month.dispose();
+        
+        // end execution
+        do Sys.halt();
+
+        return;
+    }
+
+    function void checkForErrors(int inputMonth, int inputDay, Calendar calendar) {
+        // look for erors regarding the month and day
+        if((inputMonth < 1) | (inputMonth > 12)) {
+            do Main.throwError("Cannot represent the desired month! ");
+        }
+        if((inputMonth = 1) | (inputMonth = 3) | (inputMonth = 5) | (inputMonth = 7) | (inputMonth = 8) | (inputMonth = 10) | (inputMonth = 12)) {
+            if((inputDay < 1) | (inputDay > 31)) {
+                do Main.throwError("Cannot represent the desired day! ");
+            }
+        }
+        if((inputMonth = 4) | (inputMonth = 6) | (inputMonth = 9) | (inputMonth = 11)) {
+            if((inputDay < 1) | (inputDay > 30)) {
+                do Main.throwError("Cannot represent the desired day! ");
+            }
+        }
+        if((inputMonth = 2) & (~calendar.getIsLeap())) {
+            if((inputDay < 1) | (inputDay > 28)) {
+                do Main.throwError("Cannot represent the desired day! ");
+            }
+        }
+        if((inputMonth = 2) & (calendar.getIsLeap())) {
+            if((inputDay < 1) | (inputDay > 29)) {
+                do Main.throwError("Cannot represent the desired day! ");
+            }
+        }
+        return;
+    }
+
+    /** Draws the desired month to the screen */
+    function void drawFrame(Frame frame) {
+        do Screen.clearScreen();
+        do frame.drawToScreen();
+        return;
+    }
+
+    /** Prints an error to the screen, with it's error code and then halts the program */
+    function void throwError(String message) {
+        do Screen.clearScreen();
+        do Output.moveCursor(0,0);
+        do Output.printString(message);
+        do Sys.error(-1);
+        return;
+    }
+}

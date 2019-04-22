@@ -1,0 +1,277 @@
+/**
+    Class that organizes and abstracts the information about 
+    the months and days of a certain year
+ */
+class Calendar {
+
+    field boolean yearIsLeap;
+
+    /** Constuctor */
+    constructor Calendar new(int yearIn) {
+        let yearIsLeap = Calendar.calculateIsLeap(yearIn);
+        return this;
+    }
+    /** Destructor */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method boolean getIsLeap() {
+        return yearIsLeap;
+    }
+
+    /**
+        Calculates the day of the week in which a day of a month occours based on the Zeller's congruence. 
+        The weekday goes between 0 through 6, with 0 being saturday, 1 being sunday, and so.
+     */
+    function int getDayOfMonth(int day, int month, int year) {
+        var int weekday, K, J;
+        // if the month is January, it is counted as month 13, 
+        // and if it is february it is counted as month 14
+        if(month = 1) {
+            let month = 13;
+            let year = year - 1;
+        }
+        if(month = 2) {
+            let month = 14;
+            let year = year - 1;
+        }
+        // calculate using the zeller's congruence
+        let K = NumJack.mod(year, 100);
+        let J = year / 100;
+        let weekday = (day + ((13*(month+1))/5) + K + (K/4) + (J/4) + (5*J));
+        let weekday = NumJack.mod(weekday, 7);
+        return weekday;
+
+    }
+
+    /** Calculate if a year is leap or not */
+    function boolean calculateIsLeap(int yearIn) {
+        var boolean isLeap;
+        // if it is divisible by 4 it is leap, but if it is divisible by 100 it is not, 
+        // except if it is divisible by 400
+        if(NumJack.mod(yearIn, 400) = 0) {
+            let isLeap = true;
+        }
+        else {
+            if(~(NumJack.mod(yearIn, 100) = 0) & NumJack.mod(yearIn, 4) = 0) {
+                let isLeap = true;
+            }
+            else {
+                let isLeap = false;
+            }
+        }
+        return isLeap;
+    }
+
+    /** 
+        Calculates the day in which easter sunday occurs in a year 
+        (Using butcher's algorithm) 
+     */
+    function Day calculateEaster(int year) {
+        
+        var int a, b, c, d, e, f, g, h, i, j, k, l, m, n, MONTH, DAY;
+        var int weekday;
+        var Day easterSunday;
+
+        let a = NumJack.mod(year, 19);
+        let b = year / 100;
+        let c = NumJack.mod(year, 100);
+        let d = b / 4;
+        let e = NumJack.mod(b, 4);
+        let f = (b + 8) / 25;
+        let g = (b - f + 1) / 3;
+        let h = NumJack.mod((19*a) + b - d - g + 15, 30);
+        let i = c / 4;
+        let k = NumJack.mod(c, 4);
+        let l = NumJack.mod(32 + (2*e) + (2*i) - h - k, 7);
+        let m = (a + (11*h) + (22*l)) / 451;
+        let n = h + l - (7*m) + 114;
+        let MONTH = n / 31;
+        let DAY = 1 + (NumJack.mod(n, 31));
+
+        let weekday = 1;
+        let easterSunday = Day.new(weekday, DAY, MONTH);
+
+        return easterSunday;
+    }
+
+    /** 
+        Calculates the day in which every holiday occurs in a year and adds it to an array
+     */
+    function Array calculateHolidays(int year) {
+        var Day easter, holyThursday, holyFriday, ascension, corpusChristi, sacredHeart, kingsDay, saintJoseph, saintPeter, virginAssumption, razeDay, saintsDay, cartagenaIndep;
+        var Day januaryFirst, workDay, independence, boyacaBattle, candleDay, christmas;
+        var int easterDay;
+        var Array holidays;
+
+        let holidays = Array.new(18);
+
+        // find holy thursday and friday
+        let easter = Calendar.calculateEaster(year);
+        let easterDay = easter.getDay();
+        if(easterDay > 3) {
+            let holyThursday = Day.new(5, easterDay - 3, easter.getMonth());
+            let holyFriday = Day.new(6, easterDay - 2, easter.getMonth());
+        }
+        if(easterDay = 3) {
+            let holyThursday = Day.new(5, 31, easter.getMonth()-1);
+            let holyFriday = Day.new(6, 1, easter.getMonth());
+        }
+        if(easterDay = 2) {
+            let holyThursday = Day.new(5, 30, easter.getMonth()-1);
+            let holyFriday = Day.new(6, 31, easter.getMonth()-1);
+        }
+        if(easterDay = 1) {
+            let holyThursday = Day.new(5, 29, easter.getMonth()-1);
+            let holyFriday = Day.new(6, 30, easter.getMonth()-1);
+        }
+        do holyThursday.setAsHoliday("JuevesS");
+        let holidays[0] = holyThursday;
+        do holyFriday.setAsHoliday("ViernesS");
+        let holidays[1] = holyFriday;
+
+        // find the lord's ascension (42 days after easter)
+        let ascension = Calendar.findHolidayDate(easter, 42);
+        do ascension.setAsHoliday("Ascen");
+        let holidays[2] = ascension;
+        // find corpus christi (63 days after easter)
+        let corpusChristi = Calendar.findHolidayDate(easter, 63);
+        do corpusChristi.setAsHoliday("Corp ch");
+        let holidays[3] = corpusChristi;
+        // find the sacred heasrt (70 days after easter)
+        let sacredHeart = Calendar.findHolidayDate(easter, 70);
+        do sacredHeart.setAsHoliday("Sag Cor");
+        let holidays[4] = sacredHeart;
+        // create the kings day (6 of january)
+        let kingsDay = Day.new(Calendar.getDayOfMonth(6, 1, year), 6, 1);
+        let kingsDay = Calendar.moveHoliday(kingsDay);
+        do kingsDay.setAsHoliday("Reyes");
+        let holidays[5] = kingsDay;
+        // create the saint Joseph's day (19 of march)
+        let saintJoseph = Day.new(Calendar.getDayOfMonth(19, 3, year), 19, 3);
+        let saintJoseph = Calendar.moveHoliday(saintJoseph);
+        do saintJoseph.setAsHoliday("San Jos");
+        let holidays[6] = saintJoseph;
+        // create the day of saint peter
+        let saintPeter = Day.new(Calendar.getDayOfMonth(29, 6, year), 29, 6);
+        let saintPeter = Calendar.moveHoliday(saintPeter);
+        do saintPeter.setAsHoliday("Ped&Pab");
+        let holidays[7] = saintPeter;
+        // create the day of virgin's assumption
+        let virginAssumption = Day.new(Calendar.getDayOfMonth(15, 8, year), 15, 8);
+        let virginAssumption = Calendar.moveHoliday(virginAssumption);
+        do virginAssumption.setAsHoliday("Asu Vir");
+        let holidays[8] = virginAssumption;
+        // create the day of the raze
+        let razeDay = Day.new(Calendar.getDayOfMonth(12, 10, year), 12, 10);
+        let razeDay = Calendar.moveHoliday(razeDay);
+        do razeDay.setAsHoliday("D.Raza");
+        let holidays[9] = razeDay;
+        // create the saint's day
+        let saintsDay = Day.new(Calendar.getDayOfMonth(1, 11, year), 1, 11);
+        let saintsDay = Calendar.moveHoliday(saintsDay);
+        do saintsDay.setAsHoliday("Santos");
+        let holidays[10] = saintsDay;
+        // create the independence of Cartagena's day
+        let cartagenaIndep = Day.new(Calendar.getDayOfMonth(11, 11, year), 11, 11);
+        let cartagenaIndep = Calendar.moveHoliday(cartagenaIndep);
+        do cartagenaIndep.setAsHoliday("Ind Car");
+        let holidays[11] = cartagenaIndep;
+        // create the first of january
+        let januaryFirst = Day.new(Calendar.getDayOfMonth(1, 1, year), 1, 1);
+        do januaryFirst.setAsHoliday("Enero 1");
+        let holidays[12] = januaryFirst;
+        // create the work day
+        let workDay = Day.new(Calendar.getDayOfMonth(1, 5, year), 1, 5);
+        do workDay.setAsHoliday("Trabajo");
+        let holidays[13] = workDay;
+        // create the day of independence
+        let independence = Day.new(Calendar.getDayOfMonth(20, 7, year), 20, 7);
+        do independence.setAsHoliday("Ind col");
+        let holidays[14] = independence;
+        // create the day of the batttle of Boyaca
+        let boyacaBattle = Day.new(Calendar.getDayOfMonth(7, 8, year), 7, 8);
+        do boyacaBattle.setAsHoliday("Bat Boy");
+        let holidays[15] = boyacaBattle;
+        // create the day of the candles
+        let candleDay = Day.new(Calendar.getDayOfMonth(8, 12, year), 8, 12);
+        do candleDay.setAsHoliday("inm Con");
+        let holidays[16] = candleDay;
+        // create christmas
+        let christmas = Day.new(Calendar.getDayOfMonth(25, 12, year), 25, 12);
+        do christmas.setAsHoliday("Navidad");
+        let holidays[17] = christmas;
+        
+        return holidays;
+    }
+
+    /** Iterate through the calendar until the stop condition is met */
+    function Day findHolidayDate(Day initialDay, int iterateDays){
+        var int i, countDay, countMonth, weekDay;
+        let i = 0;
+        let weekDay = initialDay.getWeekday();
+        let countDay = initialDay.getDay();
+        let countMonth = initialDay.getMonth();
+        while(i < iterateDays){
+            let i = i + 1;
+            if((countMonth = 1) | (countMonth = 3) | (countMonth = 5) | (countMonth = 7) | (countMonth = 8) | (countMonth = 10) | (countMonth = 12)){
+                if(weekDay = 6){
+                    let weekDay = 0;
+                }
+                else{
+                    let weekDay = weekDay + 1;
+                }
+                if(countDay = 31){
+                    let countDay = 1;
+                    let countMonth = countMonth + 1;
+                }
+                else{
+                    let countDay = countDay + 1; 
+                }
+            }
+            if((countMonth = 4) | (countMonth = 6) | (countMonth = 9) | (countMonth = 11)){
+                if(weekDay = 6){
+                    let weekDay = 0;
+                }
+                else{
+                    let weekDay = weekDay + 1;
+                }
+                if(countDay = 30){
+                    let countDay = 1;
+                    let countMonth = countMonth + 1;
+                }
+                else{
+                    let countDay = countDay + 1; 
+                }
+            }
+        }
+        return Day.new(weekDay, countDay, countMonth);
+    }
+
+    /** Move the holiday if it does not occur on a Monday */
+    function Day moveHoliday(Day holiday) {
+        var int weekday;
+        var Day newHoliday;
+        let weekday = holiday.getWeekday();
+        if(~(weekday = 2)) {
+            if(weekday > 2) {
+                let newHoliday = Calendar.findHolidayDate(holiday, 7 - (weekday - 2));
+            }
+            else {
+                let newHoliday = Calendar.findHolidayDate(holiday, 2 - weekday);
+            }
+        }
+        else {
+            let newHoliday = holiday;
+        }
+        return newHoliday;
+    }
+
+    /** Calculates if a day is a movable holiday, normal holiday or a normal day */
+    // function void evaluatePosibleHoliday(Day dayObj) {
+        
+    // }
+
+}
