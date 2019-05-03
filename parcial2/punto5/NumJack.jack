@@ -1,0 +1,11 @@
+/** Class that holds math operations not supported by the Jack standard library */
+class NumJack {
+
+    /** Function that calculates the modulus of two numbers */
+    function int mod(int a, int b) {
+        var boolean modulus;
+        let modulus = a - (b * (a/b));
+        return modulus;
+    }
+
+}

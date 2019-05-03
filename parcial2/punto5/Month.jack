@@ -1,0 +1,101 @@
+/** Class that defines the distribution of the days in a month of a certain year */
+class Month {
+
+    field Array days;
+    field int month, year;
+    field boolean yisLeap;
+    
+    constructor Month new(int monthIn, int yearIn, int firstWeekdayIn, Array holidays, boolean isLeap) {
+        let month = monthIn;
+        let year = yearIn;
+        let yisLeap = isLeap;
+        do fillDaysMatrix(holidays, isLeap);
+        return this;
+    }
+
+    method void dispose() {
+        var int iter, totalDays;
+        var Day currentDay;
+        
+        if((month = 1) | (month = 3) | (month = 5) | (month = 7) | (month = 8) | (month = 10) | (month = 12)) {
+            let totalDays = 31;
+        }
+        if((month = 4) | (month = 6) | (month = 9) | (month = 11)) {
+            let totalDays = 30;
+        }
+        if((month = 2) & (yisLeap)) {
+            let totalDays = 29;
+        }
+        if((month = 2) & (~yisLeap)) {
+            let totalDays = 28;
+        }
+        let iter = 0;
+        while(iter < totalDays) {
+            let currentDay = days[iter];
+            do Memory.deAlloc(currentDay);
+            let iter = iter + 1;
+        }
+
+
+        do Memory.deAlloc(days);
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method Array getDays() {
+        return days;
+    }
+
+    method int getMonth() {
+        return month;
+    }
+
+    /** Fills the matrix corresponding to the day of the month, taking into account the holidays */
+    method void fillDaysMatrix(Array holidays, boolean isLeap) {
+        var int x, y, totalDays, daysIterator, holidaysIter;
+        var Day currentDay, currentHoliday;
+        var String holidayName;
+        
+        if((month = 1) | (month = 3) | (month = 5) | (month = 7) | (month = 8) | (month = 10) | (month = 12)) {
+            let totalDays = 31;
+        }
+        if((month = 4) | (month = 6) | (month = 9) | (month = 11)) {
+            let totalDays = 30;
+        }
+        if((month = 2) & (isLeap)) {
+            let totalDays = 29;
+        }
+        if((month = 2) & (~isLeap)) {
+            let totalDays = 28;
+        }
+
+        let days = Array.new(totalDays);
+
+
+        let daysIterator = 0;
+        let holidaysIter = 0;
+        while(daysIterator < totalDays) {
+            let currentDay = Day.new(Calendar.getDayOfMonth(daysIterator+1, month, year), daysIterator+1, month);
+            
+            while(holidaysIter < 19) {
+                let currentHoliday = holidays[holidaysIter];
+
+                if((currentHoliday.getMonth() = currentDay.getMonth())) {
+                    if((currentHoliday.getDay() = currentDay.getDay())) {
+                        let holidayName = currentHoliday.getHolidayName();
+                    
+                        do currentDay.setAsHoliday(holidayName);
+                    }
+                }
+                let holidaysIter = holidaysIter + 1;
+            }
+            let holidaysIter = 0;
+            let days[daysIterator] = currentDay;
+            let daysIterator = daysIterator + 1;
+        }
+        return;
+    }
+
+
+
+}

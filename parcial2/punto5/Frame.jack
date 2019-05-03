@@ -1,0 +1,192 @@
+/** Class that prints a certain month to the screen */
+class Frame {
+
+    field Array days;
+    field int monthNumber;
+    field boolean yearIsLeap;
+
+    constructor Frame new(Calendar calendar, Month month) {
+        let days = month.getDays();
+        let monthNumber = month.getMonth();
+        let yearIsLeap = calendar.getIsLeap();
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(days);
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void drawToScreen() {
+        do drawFrame();
+        do drawDays();
+        return;
+    }
+
+    /** Draws the matrix frame for the calendar */
+    method void drawFrame() {
+        // draw the vertical lines
+        do Screen.drawLine(73, 0, 73, 255);
+        do Screen.drawLine(146, 0, 146, 255);
+        do Screen.drawLine(219, 0, 219, 255);
+        do Screen.drawLine(292, 0, 292, 255);
+        do Screen.drawLine(365, 0, 365, 255);
+        do Screen.drawLine(438, 0, 438, 255);
+        // draw the horizontal lines
+        do Screen.drawLine(0, 36, 511, 36);
+        do Screen.drawLine(0, 72, 511, 72);
+        do Screen.drawLine(0, 108, 511, 108);
+        do Screen.drawLine(0, 144, 511, 144);
+        do Screen.drawLine(0, 180, 511, 180);
+        do Screen.drawLine(0, 216, 511, 216);
+        // draw the labels for each day
+        do Output.moveCursor(2, 4);
+        do Output.printString("S");
+        do Output.moveCursor(2, 14);
+        do Output.printString("M");
+        do Output.moveCursor(2, 23);
+        do Output.printString("T");
+        do Output.moveCursor(2, 32);
+        do Output.printString("W");
+        do Output.moveCursor(2, 41);
+        do Output.printString("T");
+        do Output.moveCursor(2, 50);
+        do Output.printString("F");
+        do Output.moveCursor(2, 59);
+        do Output.printString("S");
+
+        do Output.moveCursor(22,0);
+        do Output.printString("up,down->change years|sides->change months|O->new Date|T->Exit");
+        
+        return;
+    }
+
+    /** Draws the days of the month into the frame */
+    method void drawDays() {
+        var Day currentDay;
+        var int totalDays, daysIter, weekday, weekIter;
+        var int paintPosition;
+        // evaluate the total numeber of days in the given month
+        if((monthNumber = 1) | (monthNumber = 3) | (monthNumber = 5) | (monthNumber = 7) | (monthNumber = 8) | (monthNumber = 10) | (monthNumber = 12)) {
+            let totalDays = 31;
+        }
+        if((monthNumber = 4) | (monthNumber = 6) | (monthNumber = 9) | (monthNumber = 11)) {
+            let totalDays = 30;
+        }
+        if((monthNumber = 2) & (yearIsLeap)) {
+            let totalDays = 29;
+        }
+        if((monthNumber = 2) & (~yearIsLeap)) {
+            let totalDays = 28;
+        }
+        // iterate through the days of the month
+        let daysIter = 0;
+        let weekIter = 1;
+        while(daysIter < totalDays) {
+            let currentDay = days[daysIter];                                         // BE CAREFUL HERE WITH THE INDEXING, MAY BE A BUG CAUSE IN THE FUTURE
+            // analize the day of the week in which the current day should be
+            let weekday = currentDay.getWeekday();
+            // make sunday the first day and saturday the last one
+            if(weekday = 0) {
+                let weekday = 6;
+            }
+            else {
+                let weekday = weekday - 1;
+            }
+            // paint it where it should be
+            let paintPosition = whereToPaintNumber(weekIter);
+            if(weekday = 0) {
+                do Output.moveCursor(paintPosition, 4);                                  
+                do Output.printInt(currentDay.getDay());
+                // if it is a holiday, print its name bellow the day
+                if(currentDay.getIsHoliday()) {
+                    do Output.moveCursor(paintPosition+1, 0);                                  
+                    do Output.printString(currentDay.getHolidayName());
+                }
+            }
+            if(weekday = 1) {
+                do Output.moveCursor(paintPosition, 14);                                  
+                do Output.printInt(currentDay.getDay());
+                // if it is a holiday, print its name bellow the day
+                if(currentDay.getIsHoliday()) {
+                    do Output.moveCursor(paintPosition+1, 10);                                  
+                    do Output.printString(currentDay.getHolidayName());
+                }
+            }
+            if(weekday = 2) {
+                do Output.moveCursor(paintPosition, 23);                                  
+                do Output.printInt(currentDay.getDay());
+                // if it is a holiday, print its name bellow the day
+                if(currentDay.getIsHoliday()) {
+                    do Output.moveCursor(paintPosition+1, 19);                                  
+                    do Output.printString(currentDay.getHolidayName());
+                }
+            }
+            if(weekday = 3) {
+                do Output.moveCursor(paintPosition, 32);                                  
+                do Output.printInt(currentDay.getDay());
+                // if it is a holiday, print its name bellow the day
+                if(currentDay.getIsHoliday()) {
+                    do Output.moveCursor(paintPosition+1, 28);                                  
+                    do Output.printString(currentDay.getHolidayName());
+                }
+            }
+            if(weekday = 4) {
+                do Output.moveCursor(paintPosition, 41);                                  
+                do Output.printInt(currentDay.getDay());
+                // if it is a holiday, print its name bellow the day
+                if(currentDay.getIsHoliday()) {
+                    do Output.moveCursor(paintPosition+1, 37);                                  
+                    do Output.printString(currentDay.getHolidayName());
+                }
+            }
+            if(weekday = 5) {
+                do Output.moveCursor(paintPosition, 50);                                  
+                do Output.printInt(currentDay.getDay());
+                // if it is a holiday, print its name bellow the day
+                if(currentDay.getIsHoliday()) {
+                    do Output.moveCursor(paintPosition+1, 46);                                  
+                    do Output.printString(currentDay.getHolidayName());
+                }
+            }
+            if(weekday = 6) {
+                do Output.moveCursor(paintPosition, 59);                                  
+                do Output.printInt(currentDay.getDay());
+                // if it is a holiday, print its name bellow the day
+                if(currentDay.getIsHoliday()) {
+                    do Output.moveCursor(paintPosition+1, 55);                                  
+                    do Output.printString(currentDay.getHolidayName());
+                }
+                let weekIter = weekIter + 1;
+            }
+            let daysIter = daysIter + 1;
+        }
+        return;
+    }
+
+    /** Tells the frame where to put every week on the screen */
+    method int whereToPaintNumber(int weekIterator) {
+        var int position;
+        if(weekIterator = 1) {
+            let position = 4;
+        }
+        if(weekIterator = 2) {
+            let position = 7;
+        }
+        if(weekIterator = 3) {
+            let position = 10;
+        }
+        if(weekIterator = 4) {
+            let position = 14;
+        }
+        if(weekIterator = 5) {
+            let position = 17;
+        }
+        if(weekIterator = 6) {
+            let position = 20;
+        }
+        return position;
+    }
+
+}

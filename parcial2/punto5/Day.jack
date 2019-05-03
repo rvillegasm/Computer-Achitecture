@@ -1,0 +1,50 @@
+/** Class that contains the information about a day */
+class Day {
+
+    field boolean isHoliday;
+    field String holidayName;
+    field int weekday, day, month;
+    
+    /** Constructor */
+    constructor Day new(int weekdayNum, int dayNum, int monthNum) {
+        let weekday = weekdayNum;
+        let day = dayNum;
+        let month = monthNum;
+        let holidayName = "";
+        let isHoliday = false;
+        return this;
+    }
+    /** Destructor */
+    method void dispose() {
+        do Memory.deAlloc(holidayName);
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method int getWeekday() {
+        return weekday;
+    }
+
+    method int getDay() {
+        return day;
+    }
+
+    method int getMonth() {
+        return month;
+    }
+
+    method boolean getIsHoliday() {
+        return isHoliday;
+    }
+
+    method String getHolidayName() {
+        return holidayName;
+    }
+
+    method void setAsHoliday(String name) {
+        let holidayName = name;
+        let isHoliday = true;
+        return;
+    }
+
+}
