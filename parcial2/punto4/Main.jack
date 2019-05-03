@@ -1,0 +1,39 @@
+class Main {
+
+    function int mean(int sum, int totalOfNumbers) {
+        var int result;
+        let result = sum / totalOfNumbers;
+        return result;
+    }
+
+    function void main() {
+        var int totalNum, numIter;
+        var int currentNum, sum, mean;
+        var Array numbers;
+
+        let numIter = 0;
+        let totalNum = Keyboard.readInt("How many numbers do you want to read? ");
+        let numbers = Array.new(totalNum);
+
+        let sum = 0;
+        while(numIter < totalNum) {
+            let currentNum = Keyboard.readInt("Enter a number: ");
+            let numbers[numIter] = currentNum;
+            let sum = sum + currentNum;
+            let numIter = numIter + 1;
+        }
+
+        let mean = Main.mean(sum, totalNum);
+        let numIter = 0;
+        let currentNum = 0;
+
+        while(numIter < totalNum) {
+            let currentNum = numbers[numIter] - mean;
+            do Output.printInt(currentNum);
+            do Output.println();
+            let numIter = numIter + 1;
+        }
+
+        return;
+    }
+}
